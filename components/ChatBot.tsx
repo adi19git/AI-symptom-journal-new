@@ -7,7 +7,6 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Brain, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
@@ -123,8 +122,8 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
         <div className="space-y-4">
           {Array.isArray(messages) && messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
-              <div className="h-12 w-12 mb-4 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-2xl font-bold">
-                A
+              <div className="h-12 w-12 mb-4 flex items-center justify-center text-purple-600 text-2xl font-bold">
+                🤖
               </div>
               <p className="mb-2">No conversation history yet.</p>
               <p className="text-sm max-w-xs">
@@ -133,8 +132,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
             </div>
           ) : (
             messages.map((message) => {
-              const role = message?.role || "user"; 
-              const fallbackLetter = role === "user" ? "U" : "A";
+              const role = message?.role || "user";
 
               return (
                 <div
@@ -144,11 +142,9 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
                     role === "user" ? "bg-muted/50" : "bg-purple-50",
                   )}
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-muted-foreground text-background font-bold">
-                      {fallbackLetter ? fallbackLetter.toString() : "U"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="h-8 w-8 flex items-center justify-center text-2xl">
+                    {role === "user" ? "👤" : "🤖"}
+                  </div>
 
                   <div className="flex-1 space-y-1">
                     <div className="font-medium">{role === "user" ? "You" : "AI Assistant"}</div>
