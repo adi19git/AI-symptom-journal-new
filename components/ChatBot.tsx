@@ -30,7 +30,6 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Auto-detect and save symptom from user input
   const autoDetectAndSaveSymptom = (userInput: string) => {
     const symptomKeywords = ["headache", "fever", "nausea", "cough", "pain", "dizziness", "fatigue", "sore throat", "cold", "stomach ache"];
 
@@ -134,16 +133,15 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
             </div>
           ) : (
             messages.map((message) => {
-              const fallbackLetter = message?.role
-                ? (typeof message.role === "string" && message.role.length > 0 ? message.role[0].toUpperCase() : "U")
-                : "U";
+              const role = message?.role || "user"; // Default to "user" if missing
+              const fallbackLetter = role === "user" ? "U" : "A";
 
               return (
                 <div
                   key={message.id}
                   className={cn(
                     "flex items-start gap-3 rounded-lg p-3",
-                    message.role === "user" ? "bg-muted/50" : "bg-purple-50",
+                    role === "user" ? "bg-muted/50" : "bg-purple-50",
                   )}
                 >
                   <Avatar className="h-8 w-8">
@@ -153,7 +151,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
                   </Avatar>
 
                   <div className="flex-1 space-y-1">
-                    <div className="font-medium">{message.role === "user" ? "You" : "AI Assistant"}</div>
+                    <div className="font-medium">{role === "user" ? "You" : "AI Assistant"}</div>
                     <div className="text-sm">{message.content}</div>
                     <div className="text-xs text-muted-foreground">
                       {new Date(message.timestamp).toLocaleTimeString()}
