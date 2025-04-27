@@ -143,7 +143,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-muted-foreground text-background font-bold">
-                    {message.role === "user" ? "U" : "A"}
+                    {(message?.role ? message.role.charAt(0) : "U").toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
 
