@@ -133,7 +133,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
             </div>
           ) : (
             messages.map((message) => {
-              const role = message?.role || "user"; // Default to "user" if missing
+              const role = message?.role || "user"; 
               const fallbackLetter = role === "user" ? "U" : "A";
 
               return (
@@ -146,7 +146,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-muted-foreground text-background font-bold">
-                      {fallbackLetter}
+                      {fallbackLetter ? fallbackLetter.toString() : "U"}
                     </AvatarFallback>
                   </Avatar>
 
