@@ -30,7 +30,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 🚀 Auto-detect and save symptom from user input
+  // Auto-detect and save symptom from user input
   const autoDetectAndSaveSymptom = (userInput: string) => {
     const symptomKeywords = ["headache", "fever", "nausea", "cough", "pain", "dizziness", "fatigue", "sore throat", "cold", "stomach ache"];
 
@@ -133,29 +133,35 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
               </p>
             </div>
           ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex items-start gap-3 rounded-lg p-3",
-                  message.role === "user" ? "bg-muted/50" : "bg-purple-50",
-                )}
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-muted-foreground text-background font-bold">
-                    {(message?.role ? message.role.charAt(0) : "U").toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+            messages.map((message) => {
+              const fallbackLetter = message?.role
+                ? (typeof message.role === "string" && message.role.length > 0 ? message.role[0].toUpperCase() : "U")
+                : "U";
 
-                <div className="flex-1 space-y-1">
-                  <div className="font-medium">{message.role === "user" ? "You" : "AI Assistant"}</div>
-                  <div className="text-sm">{message.content}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(message.timestamp).toLocaleTimeString()}
+              return (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "flex items-start gap-3 rounded-lg p-3",
+                    message.role === "user" ? "bg-muted/50" : "bg-purple-50",
+                  )}
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-muted-foreground text-background font-bold">
+                      {fallbackLetter}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1 space-y-1">
+                    <div className="font-medium">{message.role === "user" ? "You" : "AI Assistant"}</div>
+                    <div className="text-sm">{message.content}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </div>
