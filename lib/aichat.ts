@@ -12,7 +12,6 @@ export async function getSymptomChatbotReply(userMessage: string): Promise<strin
       body: JSON.stringify({
         contents: [
           {
-            role: "user",
             parts: [
               {
                 text: `You are a helpful, polite health assistant. Record symptoms without diagnosing.
@@ -31,7 +30,7 @@ User: ${userMessage}`,
 
     // Safely check for error first
     if (data.error) {
-      console.error("Gemini API error:", data.error);
+      console.error("Gemini API error:", JSON.stringify(data.error, null, 2));
       return "Sorry, the assistant couldn't be reached.";
     }
 
@@ -49,7 +48,7 @@ User: ${userMessage}`,
       return "I'm sorry, I couldn't generate a response.";
     }
 
-    return aiReply;
+    return aiReply.trim();
   } catch (error) {
     console.error("Error in getSymptomChatbotReply:", error);
     return "Sorry, something went wrong contacting the assistant.";
