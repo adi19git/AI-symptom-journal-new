@@ -12,16 +12,12 @@ export async function getSymptomChatbotReply(userMessage: string): Promise<strin
       body: JSON.stringify({
         contents: [
           {
+            role: "user",
             parts: [
               {
-                text: `
-                  You are a polite, professional health assistant.
-                  - Record the symptoms users mention.
-                  - Never diagnose or predict illness.
-                  - Be supportive and brief.
-                  - If the user mentions serious symptoms like chest pain, difficulty breathing, etc., suggest politely that they consult a doctor.
-                  User symptoms: ${userMessage}
-                `,
+                text: `You are a helpful, polite health assistant. Record symptoms without diagnosing.
+
+User: ${userMessage}`,
               },
             ],
           },
@@ -30,25 +26,32 @@ export async function getSymptomChatbotReply(userMessage: string): Promise<strin
     });
 
     const data = await response.json();
+
     console.log("Gemini raw response:", data);
 
+    // Safely check for error first
     if (data.error) {
       console.error("Gemini API error:", data.error);
-      return "Sorry, the assistant couldn't be reached. Please try again later.";
+      return "Sorry, the assistant couldn't be reached.";
     }
 
-    // Safe check for candidates
-    const firstCandidate = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!firstCandidate) {
-      console.error("No valid AI reply received:", data);
-      return "I'm sorry, I had trouble understanding your symptoms. Please try again later.";
+    // Safely check for candidates array existence
+    if (!Array.isArray(data.candidates) || data.candidates.length === 0) {
+      console.error("No valid AI reply candidates:", data);
+      return "I'm sorry, I had trouble analyzing your symptoms. Please try again.";
     }
 
-    // Return the actual Gemini reply
-    return firstCandidate.trim();
+    // Safely check content and parts
+    const aiReply = data.candidates[0]?.content?.parts?.[0]?.text;
+
+    if (!aiReply) {
+      console.error("AI reply missing:", data);
+      return "I'm sorry, I couldn't generate a response.";
+    }
+
+    return aiReply;
   } catch (error) {
     console.error("Error in getSymptomChatbotReply:", error);
-    return "Sorry, something went wrong while contacting the assistant.";
+    return "Sorry, something went wrong contacting the assistant.";
   }
 }
