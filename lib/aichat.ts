@@ -14,9 +14,20 @@ export async function getSymptomChatbotReply(userMessage: string): Promise<strin
           {
             parts: [
               {
-                text: `You are a helpful, polite health assistant. Record symptoms without diagnosing.
+                text: `
+You are an AI health assistant. 
 
-User: ${userMessage}`,
+Your tasks:
+- Analyze the symptoms described by the user.
+- Suggest 2–3 possible common causes based on general knowledge.
+- Recommend 2–3 helpful and safe actions the user can try (e.g., rest, hydration, monitoring).
+- Politely encourage the user to seek medical advice if symptoms are severe, serious, or persistent.
+- Never diagnose or predict specific diseases.
+
+Always be polite, brief, supportive, and clear.
+
+User's symptom description: "${userMessage}"
+                `.trim(),
               },
             ],
           },
@@ -28,19 +39,16 @@ User: ${userMessage}`,
 
     console.log("Gemini raw response:", data);
 
-    // Safely check for error first
     if (data.error) {
       console.error("Gemini API error:", JSON.stringify(data.error, null, 2));
       return "Sorry, the assistant couldn't be reached.";
     }
 
-    // Safely check for candidates array existence
     if (!Array.isArray(data.candidates) || data.candidates.length === 0) {
       console.error("No valid AI reply candidates:", data);
       return "I'm sorry, I had trouble analyzing your symptoms. Please try again.";
     }
 
-    // Safely check content and parts
     const aiReply = data.candidates[0]?.content?.parts?.[0]?.text;
 
     if (!aiReply) {
