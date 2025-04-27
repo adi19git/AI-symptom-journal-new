@@ -1,13 +1,14 @@
-"use client";
+"use client"
 
 import { getSymptomChatbotReply } from "@/lib/aichat";
-import { saveSymptom, saveAIMessage, getAIMessages } from "@/lib/storage";
-import type { AIMessage, Symptom } from "@/lib/types";
 import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Brain, Send } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bot, Brain, Send, User } from "lucide-react";
+import { saveAIMessage, getAIMessages } from "@/lib/storage";
+import type { AIMessage, Symptom } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 
@@ -29,29 +30,6 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const autoDetectAndSaveSymptom = (userInput: string) => {
-    const symptomKeywords = ["headache", "fever", "nausea", "cough", "pain", "dizziness", "fatigue", "sore throat", "cold", "stomach ache"];
-
-    const matchedSymptom = symptomKeywords.find(keyword =>
-      userInput.toLowerCase().includes(keyword)
-    );
-
-    if (matchedSymptom) {
-      const newSymptom: Symptom = {
-        id: uuidv4(),
-        name: matchedSymptom,
-        intensity: 5,
-        duration: "unknown",
-        triggers: [],
-        notes: userInput,
-        timestamp: Date.now(),
-      };
-
-      saveSymptom(newSymptom);
-      console.log("✅ Auto-logged symptom:", newSymptom);
-    }
-  };
-
   const handleSendMessage = async () => {
     if (input.trim() === "") return;
 
@@ -64,13 +42,11 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
 
     setMessages((prev) => [...prev, userMessage]);
     saveAIMessage(userMessage);
-
-    autoDetectAndSaveSymptom(input);
-
     setInput("");
     setIsLoading(true);
 
     try {
+      // Get AI response safely
       const aiResponse = await getSymptomChatbotReply(input) || "I'm sorry, I couldn't understand your symptoms. Please try again.";
 
       const aiMessage: AIMessage = {
@@ -99,13 +75,6 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
     }
   };
 
-  const handleResetConversation = () => {
-    if (confirm("Are you sure you want to reset the conversation?")) {
-      localStorage.removeItem("ai-messages");
-      setMessages([]);
-    }
-  };
-
   return (
     <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm flex flex-col h-[600px]">
       <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-t-lg pb-4">
@@ -122,40 +91,44 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
         <div className="space-y-4">
           {Array.isArray(messages) && messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
-              <div className="h-12 w-12 mb-4 flex items-center justify-center text-purple-600 text-2xl font-bold">
-                🤖
-              </div>
+              <Bot className="h-12 w-12 mb-4 text-purple-400" />
               <p className="mb-2">No conversation history yet.</p>
               <p className="text-sm max-w-xs">
                 Ask me questions about your symptoms, potential triggers, or patterns I've noticed in your data.
               </p>
             </div>
           ) : (
-            messages.map((message) => {
-              const role = message?.role || "user";
+            messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex items-start gap-3 rounded-lg p-3",
+                  message.role === "user" ? "bg-muted/50" : "bg-purple-50",
+                )}
+              >
+                {message.role === "user" ? (
+                  <Avatar className="h-8 w-8 border">
+                    <AvatarFallback className="bg-muted-foreground text-background">
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <Avatar className="h-8 w-8 border-0 bg-gradient-to-br from-purple-500 to-blue-500 text-white">
+                    <AvatarFallback>
+                      <Bot className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
 
-              return (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex items-start gap-3 rounded-lg p-3",
-                    role === "user" ? "bg-muted/50" : "bg-purple-50",
-                  )}
-                >
-                  <div className="h-8 w-8 flex items-center justify-center text-2xl">
-                    {role === "user" ? "👤" : "🤖"}
-                  </div>
-
-                  <div className="flex-1 space-y-1">
-                    <div className="font-medium">{role === "user" ? "You" : "AI Assistant"}</div>
-                    <div className="text-sm">{message.content}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(message.timestamp).toLocaleTimeString()}
-                    </div>
+                <div className="flex-1 space-y-1">
+                  <div className="font-medium">{message.role === "user" ? "You" : "AI Assistant"}</div>
+                  <div className="text-sm">{message.content}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(message.timestamp).toLocaleTimeString()}
                   </div>
                 </div>
-              );
-            })
+              </div>
+            ))
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -182,14 +155,6 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
             className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
           >
             {isLoading ? <span className="animate-pulse">...</span> : <Send className="h-4 w-4" />}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleResetConversation}
-            disabled={isLoading}
-            className="text-red-500 border-red-300 hover:bg-red-50"
-          >
-            Reset
           </Button>
         </div>
       </CardFooter>
