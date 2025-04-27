@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { getSymptomChatbotReply } from "@/lib/aichat";
 import { saveSymptom, saveAIMessage, getAIMessages } from "@/lib/storage";
@@ -67,8 +67,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
     setMessages((prev) => [...prev, userMessage]);
     saveAIMessage(userMessage);
 
-    // 🚀 NEW: Try to auto-save symptom from user input
-    autoDetectAndSaveSymptom(input);
+    autoDetectAndSaveSymptom(input); // 🚀 Auto-save symptom
 
     setInput("");
     setIsLoading(true);
@@ -99,6 +98,14 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
       saveAIMessage(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // 🚀 Reset conversation (clear chat history)
+  const handleResetConversation = () => {
+    if (confirm("Are you sure you want to reset the conversation?")) {
+      localStorage.removeItem("ai-messages");
+      setMessages([]);
     }
   };
 
@@ -182,6 +189,15 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
             className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
           >
             {isLoading ? <span className="animate-pulse">...</span> : <Send className="h-4 w-4" />}
+          </Button>
+          {/* 🚀 Reset Button */}
+          <Button
+            variant="outline"
+            onClick={handleResetConversation}
+            disabled={isLoading}
+            className="text-red-500 border-red-300 hover:bg-red-50"
+          >
+            Reset
           </Button>
         </div>
       </CardFooter>
