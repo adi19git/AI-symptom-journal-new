@@ -1,14 +1,14 @@
 "use client"
 
 import { getSymptomChatbotReply } from "@/lib/aichat";
+import { saveSymptom, saveAIMessage, getAIMessages } from "@/lib/storage";
+import type { AIMessage, Symptom } from "@/lib/types";
 import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bot, Brain, Send, User } from "lucide-react";
-import { saveAIMessage, getAIMessages } from "@/lib/storage";
-import type { AIMessage, Symptom } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 
@@ -30,6 +30,30 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // 🚀 Auto-detect and save symptom from user input
+  const autoDetectAndSaveSymptom = (userInput: string) => {
+    const symptomKeywords = ["headache", "fever", "nausea", "cough", "pain", "dizziness", "fatigue", "sore throat", "cold", "stomach ache"];
+
+    const matchedSymptom = symptomKeywords.find(keyword =>
+      userInput.toLowerCase().includes(keyword)
+    );
+
+    if (matchedSymptom) {
+      const newSymptom: Symptom = {
+        id: uuidv4(),
+        name: matchedSymptom,
+        intensity: 5, // Default medium intensity
+        duration: "unknown",
+        triggers: [],
+        notes: userInput,
+        timestamp: Date.now(),
+      };
+
+      saveSymptom(newSymptom);
+      console.log("✅ Auto-logged symptom:", newSymptom);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (input.trim() === "") return;
 
@@ -42,11 +66,14 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
 
     setMessages((prev) => [...prev, userMessage]);
     saveAIMessage(userMessage);
+
+    // 🚀 NEW: Try to auto-save symptom from user input
+    autoDetectAndSaveSymptom(input);
+
     setInput("");
     setIsLoading(true);
 
     try {
-      // Get AI response safely
       const aiResponse = await getSymptomChatbotReply(input) || "I'm sorry, I couldn't understand your symptoms. Please try again.";
 
       const aiMessage: AIMessage = {
