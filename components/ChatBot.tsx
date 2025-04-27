@@ -1,79 +1,79 @@
 "use client"
+
 import { getSymptomChatbotReply } from "@/lib/aichat";
-import { useState, useRef, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Bot, Brain, Send, User } from "lucide-react"
-import { saveAIMessage, getAIMessages } from "@/lib/storage"
-import type { AIMessage, Symptom } from "@/lib/types"
-import { cn } from "@/lib/utils"
-import { v4 as uuidv4 } from "uuid"
-import { analyzeSymptoms } from "@/lib/ai-service"
+import { useState, useRef, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bot, Brain, Send, User } from "lucide-react";
+import { saveAIMessage, getAIMessages } from "@/lib/storage";
+import type { AIMessage, Symptom } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { v4 as uuidv4 } from "uuid";
 
 export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
-  const [messages, setMessages] = useState<AIMessage[]>([])
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [messages, setMessages] = useState<AIMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMessages(getAIMessages())
-  }, [])
+    setMessages(getAIMessages());
+  }, []);
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleSendMessage = async () => {
-    if (input.trim() === "") return
+    if (input.trim() === "") return;
 
     const userMessage: AIMessage = {
       id: uuidv4(),
       role: "user",
       content: input,
       timestamp: Date.now(),
-    }
+    };
 
-    setMessages((prev) => [...prev, userMessage])
-    saveAIMessage(userMessage)
-    setInput("")
-    setIsLoading(true)
+    setMessages((prev) => [...prev, userMessage]);
+    saveAIMessage(userMessage);
+    setInput("");
+    setIsLoading(true);
 
     try {
-      // Get AI response
-      const aiResponse = await analyzeSymptoms(input, symptoms)
+      // Get AI response safely
+      const aiResponse = await getSymptomChatbotReply(input) || "I'm sorry, I couldn't understand your symptoms. Please try again.";
 
       const aiMessage: AIMessage = {
         id: uuidv4(),
         role: "assistant",
         content: aiResponse,
         timestamp: Date.now(),
-      }
+      };
 
-      setMessages((prev) => [...prev, aiMessage])
-      saveAIMessage(aiMessage)
+      setMessages((prev) => [...prev, aiMessage]);
+      saveAIMessage(aiMessage);
     } catch (error) {
-      console.error("Error getting AI response:", error)
+      console.error("Error getting AI response:", error);
 
       const errorMessage: AIMessage = {
         id: uuidv4(),
         role: "assistant",
         content: "I'm sorry, I had trouble analyzing your symptoms. Please try again later.",
         timestamp: Date.now(),
-      }
+      };
 
-      setMessages((prev) => [...prev, errorMessage])
-      saveAIMessage(errorMessage)
+      setMessages((prev) => [...prev, errorMessage]);
+      saveAIMessage(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm flex flex-col h-[600px]">
@@ -89,7 +89,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
 
       <CardContent className="flex-grow overflow-auto p-4">
         <div className="space-y-4">
-          {messages.length === 0 ? (
+          {Array.isArray(messages) && messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
               <Bot className="h-12 w-12 mb-4 text-purple-400" />
               <p className="mb-2">No conversation history yet.</p>
@@ -142,8 +142,8 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault()
-                handleSendMessage()
+                e.preventDefault();
+                handleSendMessage();
               }
             }}
             className="resize-none"
@@ -159,6 +159,5 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }
-
