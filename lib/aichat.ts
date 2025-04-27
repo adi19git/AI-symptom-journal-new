@@ -1,6 +1,6 @@
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_API_KEY}`;
 
 export async function getSymptomChatbotReply(userMessage: string): Promise<string> {
   try {
@@ -14,7 +14,7 @@ export async function getSymptomChatbotReply(userMessage: string): Promise<strin
           {
             parts: [
               {
-                text: `You are a friendly health assistant.\n\nUser: ${userMessage}`,
+                text: `You are a friendly health assistant. Record the user's symptoms politely without diagnosing.\n\nUser: ${userMessage}`,
               },
             ],
           },
