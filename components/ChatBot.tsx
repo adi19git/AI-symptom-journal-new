@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bot, Brain, Send, User } from "lucide-react";
+import { Brain, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 
@@ -42,7 +42,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
       const newSymptom: Symptom = {
         id: uuidv4(),
         name: matchedSymptom,
-        intensity: 5, // Default medium intensity
+        intensity: 5,
         duration: "unknown",
         triggers: [],
         notes: userInput,
@@ -67,7 +67,7 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
     setMessages((prev) => [...prev, userMessage]);
     saveAIMessage(userMessage);
 
-    autoDetectAndSaveSymptom(input); // 🚀 Auto-save symptom
+    autoDetectAndSaveSymptom(input);
 
     setInput("");
     setIsLoading(true);
@@ -101,7 +101,6 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
     }
   };
 
-  // 🚀 Reset conversation (clear chat history)
   const handleResetConversation = () => {
     if (confirm("Are you sure you want to reset the conversation?")) {
       localStorage.removeItem("ai-messages");
@@ -125,7 +124,9 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
         <div className="space-y-4">
           {Array.isArray(messages) && messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
-              <Bot className="h-12 w-12 mb-4 text-purple-400" />
+              <div className="h-12 w-12 mb-4 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-2xl font-bold">
+                A
+              </div>
               <p className="mb-2">No conversation history yet.</p>
               <p className="text-sm max-w-xs">
                 Ask me questions about your symptoms, potential triggers, or patterns I've noticed in your data.
@@ -140,19 +141,11 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
                   message.role === "user" ? "bg-muted/50" : "bg-purple-50",
                 )}
               >
-                {message.role === "user" ? (
-                  <Avatar className="h-8 w-8 border">
-                    <AvatarFallback className="bg-muted-foreground text-background">
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <Avatar className="h-8 w-8 border-0 bg-gradient-to-br from-purple-500 to-blue-500 text-white">
-                    <AvatarFallback>
-                      <Bot className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-muted-foreground text-background font-bold">
+                    {message.role === "user" ? "U" : "A"}
+                  </AvatarFallback>
+                </Avatar>
 
                 <div className="flex-1 space-y-1">
                   <div className="font-medium">{message.role === "user" ? "You" : "AI Assistant"}</div>
@@ -190,7 +183,6 @@ export default function AIChat({ symptoms }: { symptoms: Symptom[] }) {
           >
             {isLoading ? <span className="animate-pulse">...</span> : <Send className="h-4 w-4" />}
           </Button>
-          {/* 🚀 Reset Button */}
           <Button
             variant="outline"
             onClick={handleResetConversation}
