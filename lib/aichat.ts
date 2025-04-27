@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY; // Make sure you set this in .env or Vercel
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
 
@@ -14,7 +14,7 @@ export async function getSymptomChatbotReply(userMessage: string): Promise<strin
           {
             parts: [
               {
-                text: `You are a friendly, professional assistant for tracking health symptoms. Your job is to politely record the symptoms users mention. Never diagnose or predict. Always stay supportive.\n\nUser: ${userMessage}`,
+                text: `You are a friendly assistant. Help users track symptoms politely.\n\nUser: ${userMessage}`,
               },
             ],
           },
@@ -24,8 +24,15 @@ export async function getSymptomChatbotReply(userMessage: string): Promise<strin
 
     const data = await response.json();
 
-    if (!data || !data.candidates || data.candidates.length === 0) {
-      console.error("No valid AI response candidates found.");
+    console.log("Gemini raw response:", data); // ADD THIS!
+
+    if (data.error) {
+      console.error("Gemini API error:", data.error);
+      return "Sorry, there was a problem reaching the assistant.";
+    }
+
+    if (!data.candidates || data.candidates.length === 0) {
+      console.error("No valid candidates:", data);
       return "I'm sorry, I couldn't understand. Could you try again?";
     }
 
