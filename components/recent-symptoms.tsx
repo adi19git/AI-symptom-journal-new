@@ -44,7 +44,6 @@ export default function RecentSymptoms({ symptoms }: RecentSymptomsProps) {
     }
   }
 
-  // Sort symptoms by date (newest first)
   const sortedSymptoms = [...symptoms].sort((a, b) => b.timestamp - a.timestamp)
 
   return (
@@ -68,12 +67,14 @@ export default function RecentSymptoms({ symptoms }: RecentSymptomsProps) {
                   className="flex items-start space-x-4 p-3 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   <Avatar className="h-9 w-9 border-0 bg-gradient-to-br from-purple-500 to-blue-500 text-white">
-                    <AvatarFallback>{symptom.type.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>
+                      {symptom.type ? symptom.type.charAt(0).toUpperCase() : "S"}
+                    </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
-                      <div className="font-medium">{symptom.type}</div>
+                      <div className="font-medium">{symptom.type || "Symptom"}</div>
                       <div className="flex items-center gap-2">
                         <Badge
                           variant={
@@ -109,7 +110,7 @@ export default function RecentSymptoms({ symptoms }: RecentSymptomsProps) {
                         <CalendarDays className="h-3 w-3 mr-1" />
                         {new Date(symptom.timestamp).toLocaleDateString()}
                       </span>
-                      {symptom.duration && (
+                      {symptom.duration && symptom.durationUnit && (
                         <span className="flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
                           {symptom.duration} {symptom.durationUnit}
@@ -161,4 +162,3 @@ export default function RecentSymptoms({ symptoms }: RecentSymptomsProps) {
     </>
   )
 }
-
