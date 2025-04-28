@@ -1,9 +1,5 @@
-import Dashboard from "@/app/dashboard/page"; // adjust path based on your structure
+import { redirect } from "next/navigation"
 
-export default function LandingPage() {
-  return (
-    <main className="p-4">
-      <Dashboard />
-    </main>
-  );
+export default function Home() {
+  redirect("/landing")
 }
