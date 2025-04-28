@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 import type { Symptom } from "@/lib/types"
 
 interface SymptomTimelineProps {
@@ -16,7 +15,6 @@ export default function SymptomTimeline({ symptoms }: SymptomTimelineProps) {
   const [chartData, setChartData] = useState<any[]>([])
   const [symptomTypes, setSymptomTypes] = useState<string[]>([])
 
-  // Process symptoms data for the chart
   useEffect(() => {
     if (symptoms.length === 0) {
       setChartData([])
@@ -24,21 +22,17 @@ export default function SymptomTimeline({ symptoms }: SymptomTimelineProps) {
       return
     }
 
-    // Get unique symptom types
     const types = Array.from(new Set(symptoms.map((s) => s.type)))
     setSymptomTypes(types)
 
-    // Determine date range
     const now = new Date()
     const startDate =
       timeframe === "week"
         ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
         : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-    // Create date map
     const dateMap: Record<string, Record<string, number>> = {}
 
-    // Initialize dates
     for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
       const dateKey = d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
       dateMap[dateKey] = {}
@@ -47,7 +41,6 @@ export default function SymptomTimeline({ symptoms }: SymptomTimelineProps) {
       })
     }
 
-    // Fill in symptom data
     const filteredSymptoms = symptoms.filter((s) => new Date(s.timestamp) >= startDate)
 
     filteredSymptoms.forEach((symptom) => {
@@ -59,7 +52,6 @@ export default function SymptomTimeline({ symptoms }: SymptomTimelineProps) {
           dateMap[dateKey][symptom.type] = 0
         }
 
-        // Average intensity if multiple of same type on same day
         const existingCount = dateMap[dateKey][`${symptom.type}Count`] || 0
         const existingTotal = dateMap[dateKey][symptom.type] * existingCount || 0
 
@@ -68,7 +60,6 @@ export default function SymptomTimeline({ symptoms }: SymptomTimelineProps) {
       }
     })
 
-    // Convert to chart data
     const data = Object.entries(dateMap).map(([date, values]) => {
       return {
         date,
@@ -79,30 +70,17 @@ export default function SymptomTimeline({ symptoms }: SymptomTimelineProps) {
     setChartData(data)
   }, [symptoms, timeframe])
 
-  // Create chart config
-  const chartConfig = symptomTypes.reduce(
-    (config, type) => {
-      config[type] = {
-        label: type,
-        color: getColorForSymptomType(type),
-      }
-      return config
-    },
-    {} as Record<string, { label: string; color: string }>,
-  )
-
-  function getColorForSymptomType(type: string): string {
+  const getColorForSymptomType = (type: string): string => {
     const colorMap: Record<string, string> = {
-      Headache: "hsl(259, 77%, 64%)",
-      Pain: "hsl(0, 84%, 60%)",
-      Fatigue: "hsl(201, 96%, 64%)",
-      Nausea: "hsl(150, 60%, 54%)",
-      Dizziness: "hsl(35, 92%, 65%)",
-      Fever: "hsl(340, 82%, 52%)",
-      Cough: "hsl(220, 83%, 65%)",
+      Headache: "#a855f7", // purple-500
+      Pain: "#ef4444",     // red-500
+      Fatigue: "#38bdf8",  // sky-400
+      Nausea: "#34d399",   // green-400
+      Dizziness: "#facc15",// yellow-400
+      Fever: "#f43f5e",    // rose-500
+      Cough: "#60a5fa",    // blue-400
     }
-
-    return colorMap[type] || "hsl(200, 70%, 50%)"
+    return colorMap[type] || "#3b82f6" // Default blue-500
   }
 
   return (
@@ -122,29 +100,28 @@ export default function SymptomTimeline({ symptoms }: SymptomTimelineProps) {
           </SelectContent>
         </Select>
       </CardHeader>
+
       <CardContent>
         <div className="h-[300px]">
           {chartData.length > 0 ? (
-            <ChartContainer config={chartConfig}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} tickMargin={5} />
-                  <YAxis domain={[0, 10]} tick={{ fontSize: 12 }} tickMargin={5} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  {symptomTypes.map((type) => (
-                    <Line
-                      key={type}
-                      type="monotone"
-                      dataKey={type}
-                      stroke={`var(--color-${type})`}
-                      strokeWidth={2}
-                      dot={{ fill: `var(--color-${type})` }}
-                      activeDot={{ r: 6 }}
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} tickMargin={5} />
+                <YAxis domain={[0, 10]} tick={{ fontSize: 12 }} tickMargin={5} />
+                <Tooltip />
+                {symptomTypes.map((type) => (
+                  <Line
+                    key={type}
+                    type="monotone"
+                    dataKey={type}
+                    stroke={getColorForSymptomType(type)}
+                    strokeWidth={2}
+                    dot={{ stroke: getColorForSymptomType(type), strokeWidth: 2 }}
+                    activeDot={{ r: 6 }}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               No symptom data available for this time period
@@ -155,4 +132,3 @@ export default function SymptomTimeline({ symptoms }: SymptomTimelineProps) {
     </Card>
   )
 }
-
