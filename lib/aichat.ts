@@ -1,6 +1,6 @@
 const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
 
 export async function getSymptomChatbotReply(userMessage: string): Promise<string> {
   try {
@@ -15,7 +15,7 @@ export async function getSymptomChatbotReply(userMessage: string): Promise<strin
             parts: [
               {
                 text: `
-You are an AI health assistant. 
+You are an AI health assistant.
 
 Your tasks:
 - Analyze the symptoms described by the user.
@@ -36,7 +36,6 @@ User's symptom description: "${userMessage}"
     });
 
     const data = await response.json();
-
     console.log("Gemini raw response:", data);
 
     if (data.error) {
@@ -44,15 +43,10 @@ User's symptom description: "${userMessage}"
       return "Sorry, the assistant couldn't be reached.";
     }
 
-    if (!Array.isArray(data.candidates) || data.candidates.length === 0) {
-      console.error("No valid AI reply candidates:", data);
-      return "I'm sorry, I had trouble analyzing your symptoms. Please try again.";
-    }
-
-    const aiReply = data.candidates[0]?.content?.parts?.[0]?.text;
+    const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!aiReply) {
-      console.error("AI reply missing:", data);
+      console.error("AI reply missing or empty:", data);
       return "I'm sorry, I couldn't generate a response.";
     }
 
